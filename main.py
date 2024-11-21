@@ -1,38 +1,31 @@
-# "J-Link OB-nRF5340-NordicSemi"
-# 1050202199
-
-import pylink
 import time
+from pynrfjprog import LowLevel
 
 # Constants
 RTT_CONTROL_BLOCK_ADDRESS = 0x200000a4
 DEVICE_NAME = "nRF52840_xxAA"  # Device name for the nRF52840
 SERIAL_NO = 1050202199
-RTT_BUFFER_SIZE = 1024  # Size of the RTT buffer to read
 
-def read_rtt(jlink: pylink.JLink, rtt_address):
-    """
-    Read RTT data from the target device.
-    """
+with LowLevel.API('NRF52') as api:
+    # print(api.enum_emu_snr())
+    api.connect_to_emu_without_snr()
+    # api.disconnect_from_emu()
+    api.connect_to_device()
+    print("Connected to nRF52840.")
+
     
-    jlink.rtt_start(RTT_CONTROL_BLOCK_ADDRESS)
-    print(jlink.rtt_get_num_up_buffers())
+    print("Initializing RTT (automatic address discovery).")
+    api.rtt_start()
 
-def main():
-    # Initialize J-Link
-    jlink = pylink.JLink()
-    jlink.open(SERIAL_NO)
-    jlink.set_tif(pylink.enums.JLinkInterfaces.SWD)
-    jlink.connect(DEVICE_NAME)
+    # Wait for RTT to be ready
+    while not api.rtt_is_control_block_found():
+        time.sleep(0.5)
+    control_block = api.rtt_get_control_block_info()[1]
+    print(f"RTT control block found and initialized. {control_block:x}")
 
-    print(jlink.connected())
-
-    # Halt the CPU to access memory safely
-    # jlink.halt()
-
-    # Start reading RTT data
     print("Reading RTT data...")
-    read_rtt(jlink, RTT_CONTROL_BLOCK_ADDRESS)
-
-if __name__ == "__main__":
-    main()
+    while True:
+        data = api.rtt_read(channel_index=0, length=100, encoding='latin-1')
+        if data:
+            print(data, end='')
+        time.sleep(0.1)
