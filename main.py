@@ -25,7 +25,7 @@ with LowLevel.API('NRF52') as api:
 
     print("Reading RTT data...")
     while True:
-        data = api.rtt_read(channel_index=0, length=100, encoding='latin-1')
+        data = api.rtt_read(channel_index=0, length=256, encoding='latin-1')
         if data:
             print(data, end='')
         time.sleep(0.1)
