@@ -2,217 +2,258 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox
 import math
 
-class DogParkTracker:
+class Dog:
+    def __init__(self, name, x, y):
+        self.name = name
+        self.x = x
+        self.y = y
+        self.radius = 20
+        self.color = 'blue'
+        self.selected = False
+
+class DogParkApp:
     def __init__(self, master):
         self.master = master
-        master.title("Dog Park Location Tracker")
+        self.master.title("Dog Park Tracker")
         
-        # Canvas setup
-        self.canvas_width = 800
-        self.canvas_height = 600
-        self.canvas = tk.Canvas(master, width=self.canvas_width, height=self.canvas_height, 
-                                bg='lightgreen', highlightthickness=0)
+        # Main frame
+        self.main_frame = tk.Frame(master)
+        self.main_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        
+        # Canvas for drawing
+        self.canvas = tk.Canvas(self.main_frame, bg='lightgreen', width=800, height=600)
         self.canvas.pack(expand=True, fill=tk.BOTH)
         
-        # Zoom and pan variables
-        self.zoom_factor = 1.0
-        self.pan_x = 0
-        self.pan_y = 0
+        # Sidebar frame
+        self.sidebar = tk.Frame(master, width=250, bg='lightgray')
+        self.sidebar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Dog storage
+        # Sidebar contents
+        self.dog_info_label = tk.Label(self.sidebar, text="No Dog Selected", bg='lightgray')
+        self.dog_info_label.pack(pady=10)
+        
+        self.edit_name_button = tk.Button(self.sidebar, text="Edit Name", command=self.edit_dog_name)
+        self.edit_name_button.pack(pady=5)
+        
+        self.delete_dog_button = tk.Button(self.sidebar, text="Delete Dog", command=self.delete_selected_dog)
+        self.delete_dog_button.pack(pady=5)
+        
+        self.add_dog_button = tk.Button(self.sidebar, text="Add Dog", command=self.add_dog)
+        self.add_dog_button.pack(pady=5)
+        
+        # Dogs list
         self.dogs = []
-        self.selected_dog = None
+        
+        # Pan and zoom variables
+        self.pan_start_x = 0
+        self.pan_start_y = 0
+        self.zoom_factor = 1.0
+        self.offset_x = 0
+        self.offset_y = 0
         
         # Bind events
-        self.canvas.bind('<Button-1>', self.on_canvas_click)
-        self.canvas.bind('<ButtonPress-3>', self.start_pan)
-        self.canvas.bind('<B3-Motion>', self.pan)
-        self.canvas.bind('<MouseWheel>', self.zoom)  # Windows and MacOS
-        self.canvas.bind('<Button-4>', self.zoom)    # Linux scroll up
-        self.canvas.bind('<Button-5>', self.zoom)    # Linux scroll down
+        self.canvas.bind('<ButtonPress-1>', self.on_canvas_click)
+        self.canvas.bind('<B1-Motion>', self.on_pan)
+        self.canvas.bind('<MouseWheel>', self.on_zoom)  # Windows and MacOS
+        self.canvas.bind('<Button-4>', self.on_zoom)    # Linux scroll up
+        self.canvas.bind('<Button-5>', self.on_zoom)    # Linux scroll down
         
-        # Keyboard bindings
-        master.bind('<Delete>', self.delete_selected_dog)
-        master.bind('<Control-e>', self.edit_dog)
-        
-        # Menu setup
-        menubar = tk.Menu(master)
-        master.config(menu=menubar)
-        
-        # Dog menu
-        dog_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Dogs", menu=dog_menu)
-        dog_menu.add_command(label="Add Dog", command=self.add_dog_dialog)
-        dog_menu.add_command(label="Edit Dog", command=self.edit_dog)
-        dog_menu.add_command(label="Delete Dog", command=self.delete_selected_dog)
-        
-        # Context menu
-        self.context_menu = tk.Menu(master, tearoff=0)
-        self.context_menu.add_command(label="Add Dog", command=self.add_dog_dialog)
-        
-    def add_dog(self, x, y, name=None):
-        """Add a dog to the park"""
-        if name is None:
-            name = simpledialog.askstring("Dog Name", "Enter dog's name:")
-        
-        if name:
-            # Convert screen coordinates to park coordinates
-            park_x = (x - self.pan_x) / self.zoom_factor
-            park_y = (y - self.pan_y) / self.zoom_factor
+        # Add initial info text
+        self.canvas.create_text(400, 300, 
+            text="Right-click to add a dog\nScroll to zoom\nClick and drag to pan", 
+            font=('Arial', 12), fill='gray')
+
+    def add_dog(self, x=None, y=None):
+        """Add a new dog to the park"""
+        # If x and y are not provided, prompt user
+        if x is None or y is None:
+            # Use canvas center as default
+            canvas_center_x = self.canvas.winfo_width() / 2
+            canvas_center_y = self.canvas.winfo_height() / 2
             
-            # Create dog object
-            dog = {
-                'name': name,
-                'x': park_x,
-                'y': park_y,
-                'canvas_object': None
-            }
-            self.dogs.append(dog)
-            self.draw_dog(dog)
-    
-    def draw_dog(self, dog):
-        """Draw or redraw a dog on the canvas"""
-        # Remove existing canvas object if it exists
-        if dog['canvas_object']:
-            self.canvas.delete(dog['canvas_object'])
-        
-        # Calculate screen coordinates
-        screen_x = dog['x'] * self.zoom_factor + self.pan_x
-        screen_y = dog['y'] * self.zoom_factor + self.pan_y
-        
-        # Draw dog as a circle with name
-        radius = 20 * self.zoom_factor
-        dog['canvas_object'] = [
-            self.canvas.create_oval(
-                screen_x - radius, screen_y - radius, 
-                screen_x + radius, screen_y + radius, 
-                fill='brown', outline='black'
-            ),
-            self.canvas.create_text(
-                screen_x, screen_y + radius + 15, 
-                text=dog['name'], fill='black'
-            )
-        ]
-    
-    def redraw_all_dogs(self):
-        """Redraw all dogs when zooming or panning"""
-        for dog in self.dogs:
-            self.draw_dog(dog)
-    
-    def on_canvas_click(self, event):
-        """Handle canvas click - add dog or select existing dog"""
-        # Check if an existing dog is clicked
-        for dog in self.dogs:
-            screen_x = dog['x'] * self.zoom_factor + self.pan_x
-            screen_y = dog['y'] * self.zoom_factor + self.pan_y
-            
-            # Calculate distance from click to dog center
-            dist = math.sqrt((event.x - screen_x)**2 + (event.y - screen_y)**2)
-            
-            if dist < 25 * self.zoom_factor:
-                # Dog selected
-                self.selected_dog = dog
+            # Ask for dog name
+            name = simpledialog.askstring("Add Dog", "Enter dog's name:")
+            if not name:
                 return
-        
-        # If no dog selected, add a new dog
-        self.add_dog(event.x, event.y)
-    
-    def add_dog_dialog(self):
-        """Open dialog to add a dog with specific coordinates"""
-        name = simpledialog.askstring("Dog Name", "Enter dog's name:")
-        if name:
-            x = simpledialog.askfloat("X Coordinate", "Enter X coordinate:")
-            y = simpledialog.askfloat("Y Coordinate", "Enter Y coordinate:")
             
-            if x is not None and y is not None:
-                self.dogs.append({
-                    'name': name,
-                    'x': x,
-                    'y': y,
-                    'canvas_object': None
-                })
-                self.redraw_all_dogs()
-    
-    def edit_dog(self, event=None):
-        """Edit selected dog's name or coordinates"""
-        if not self.selected_dog:
-            messagebox.showinfo("Edit Dog", "No dog selected. Click on a dog first.")
-            return
+            # Create dog at canvas center or mouse position
+            x = canvas_center_x
+            y = canvas_center_y
         
-        # Prompt for new name
-        new_name = simpledialog.askstring(
-            "Edit Dog", 
-            f"Current name: {self.selected_dog['name']}", 
-            initialvalue=self.selected_dog['name']
-        )
+        # Create dog object
+        new_dog = Dog(name, x, y)
+        self.dogs.append(new_dog)
         
-        if new_name:
-            self.selected_dog['name'] = new_name
+        # Deselect all other dogs
+        for dog in self.dogs:
+            dog.selected = False
         
-        # Prompt for new coordinates
-        new_x = simpledialog.askfloat(
-            "X Coordinate", 
-            "Enter new X coordinate:", 
-            initialvalue=self.selected_dog['x']
-        )
-        new_y = simpledialog.askfloat(
-            "Y Coordinate", 
-            "Enter new Y coordinate:", 
-            initialvalue=self.selected_dog['y']
-        )
+        # Select the new dog
+        new_dog.selected = True
         
-        if new_x is not None and new_y is not None:
-            self.selected_dog['x'] = new_x
-            self.selected_dog['y'] = new_y
+        # Redraw everything
+        self.redraw_canvas()
         
-        # Redraw to reflect changes
-        self.redraw_all_dogs()
-    
-    def delete_selected_dog(self, event=None):
-        """Delete the currently selected dog"""
-        if not self.selected_dog:
-            messagebox.showinfo("Delete Dog", "No dog selected. Click on a dog first.")
-            return
+        # Update sidebar
+        self.update_sidebar()
+
+    def on_canvas_click(self, event):
+        """Handle canvas click events"""
+        # Deselect all dogs first
+        for dog in self.dogs:
+            dog.selected = False
         
-        # Remove canvas objects
-        if self.selected_dog['canvas_object']:
-            for obj in self.selected_dog['canvas_object']:
-                self.canvas.delete(obj)
+        # Check if any dog was clicked
+        for dog in self.dogs:
+            # Calculate distance from click to dog center
+            dist = math.sqrt((event.x - dog.x)**2 + (event.y - dog.y)**2)
+            if dist <= dog.radius:
+                dog.selected = True
+                break
         
-        # Remove from dogs list
-        self.dogs.remove(self.selected_dog)
-        self.selected_dog = None
-    
-    def start_pan(self, event):
-        """Start panning the canvas"""
-        self.canvas.scan_mark(event.x, event.y)
-    
-    def pan(self, event):
+        # Redraw canvas to show selection
+        self.redraw_canvas()
+        
+        # Update sidebar
+        self.update_sidebar()
+
+    def on_pan(self, event):
         """Pan the canvas"""
-        self.canvas.scan_dragto(event.x, event.y, gain=1)
-        self.pan_x = self.canvas.canvasx(0)
-        self.pan_y = self.canvas.canvasy(0)
-        self.redraw_all_dogs()
-    
-    def zoom(self, event):
+        if not hasattr(self, 'pan_start_x'):
+            self.pan_start_x = event.x
+            self.pan_start_y = event.y
+            return
+        
+        # Calculate pan delta
+        dx = event.x - self.pan_start_x
+        dy = event.y - self.pan_start_y
+        
+        # Update offset
+        self.offset_x += dx
+        self.offset_y += dy
+        
+        # Update pan start
+        self.pan_start_x = event.x
+        self.pan_start_y = event.y
+        
+        # Redraw canvas
+        self.redraw_canvas()
+
+    def on_zoom(self, event):
         """Zoom in or out"""
         # Determine zoom direction
-        if event.num == 5 or event.delta < 0:  # Zoom out
-            new_zoom = max(0.1, self.zoom_factor * 0.9)
-        else:  # Zoom in
-            new_zoom = min(10, self.zoom_factor * 1.1)
+        if event.num == 5 or event.delta < 0:  # Scroll down
+            self.zoom_factor *= 0.9
+        elif event.num == 4 or event.delta > 0:  # Scroll up
+            self.zoom_factor *= 1.1
         
-        # Update zoom factor
-        self.zoom_factor = new_zoom
+        # Limit zoom
+        self.zoom_factor = max(0.1, min(self.zoom_factor, 5.0))
         
-        # Redraw dogs with new zoom
-        self.redraw_all_dogs()
+        # Redraw canvas
+        self.redraw_canvas()
+
+    def redraw_canvas(self):
+        """Redraw all dogs on the canvas"""
+        # Clear canvas
+        self.canvas.delete('all')
+        
+        # Redraw dogs
+        for dog in self.dogs:
+            # Determine color based on selection
+            color = 'red' if dog.selected else 'blue'
+            
+            # Draw dog
+            self.canvas.create_oval(
+                dog.x - dog.radius, 
+                dog.y - dog.radius, 
+                dog.x + dog.radius, 
+                dog.y + dog.radius, 
+                fill=color, 
+                outline='black'
+            )
+            
+            # Draw dog name
+            self.canvas.create_text(
+                dog.x, 
+                dog.y + dog.radius + 10, 
+                text=dog.name, 
+                fill='black'
+            )
+
+    def update_sidebar(self):
+        """Update sidebar with selected dog's information"""
+        # Find selected dog
+        selected_dog = next((dog for dog in self.dogs if dog.selected), None)
+        
+        if selected_dog:
+            # Update dog info
+            info_text = f"Dog Name: {selected_dog.name}\n"
+            info_text += f"X Coordinate: {selected_dog.x}\n"
+            info_text += f"Y Coordinate: {selected_dog.y}"
+            
+            self.dog_info_label.config(text=info_text)
+            
+            # Enable buttons
+            self.edit_name_button.config(state=tk.NORMAL)
+            self.delete_dog_button.config(state=tk.NORMAL)
+        else:
+            # No dog selected
+            self.dog_info_label.config(text="No Dog Selected")
+            
+            # Disable buttons
+            self.edit_name_button.config(state=tk.DISABLED)
+            self.delete_dog_button.config(state=tk.DISABLED)
+
+    def edit_dog_name(self):
+        """Edit name of selected dog"""
+        # Find selected dog
+        selected_dog = next((dog for dog in self.dogs if dog.selected), None)
+        
+        if selected_dog:
+            # Prompt for new name
+            new_name = simpledialog.askstring(
+                "Edit Dog", 
+                "Enter new name for the dog:", 
+                initialvalue=selected_dog.name
+            )
+            
+            if new_name:
+                selected_dog.name = new_name
+                
+                # Redraw canvas
+                self.redraw_canvas()
+                
+                # Update sidebar
+                self.update_sidebar()
+
+    def delete_selected_dog(self):
+        """Delete the selected dog"""
+        # Find selected dog
+        selected_dog = next((dog for dog in self.dogs if dog.selected), None)
+        
+        if selected_dog:
+            # Confirm deletion
+            confirm = messagebox.askyesno(
+                "Delete Dog", 
+                f"Are you sure you want to delete {selected_dog.name}?"
+            )
+            
+            if confirm:
+                # Remove dog from list
+                self.dogs.remove(selected_dog)
+                
+                # Redraw canvas
+                self.redraw_canvas()
+                
+                # Update sidebar
+                self.update_sidebar()
 
 def main():
     root = tk.Tk()
-    root.geometry("800x600")
-    app = DogParkTracker(root)
+    root.geometry('1000x600')
+    app = DogParkApp(root)
     root.mainloop()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
