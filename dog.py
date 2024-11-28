@@ -2,6 +2,17 @@ import pygame
 import pygame_gui
 import sys
 
+# Generated with prompt:
+
+# Write a Python app that displays the location of dogs in a park. Dogs are shown as circles labeled with names. The app must have the following functionalities:
+# 1. Pan the view with the mouse.
+# 2. Zoom in and out using the mouse wheel.
+# 3. Add a dog.
+# 4. Select a dog by clicking on it, the dog should change color to show that it is selected.
+# 5. Show selected dog's properties on a sidebar as editable fields (coordinates and name).
+# 6. Move a dog by dragging and dropping.
+# 7. Delete selected dog.
+
 class Dog:
     def __init__(self, name, x, y, radius=20):
         self.name = name
