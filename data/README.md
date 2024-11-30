@@ -8,3 +8,6 @@ Anchor 39 = (400, 300)
 Anchor 12 = (160, 530)
 Node 98 = (120, 20)
 +- 50 cm
+
+Anchor 12 was turned off for some time.
+Node 99 was moved outside of range and data was not being received.
