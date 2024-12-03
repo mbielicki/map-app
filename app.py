@@ -34,6 +34,16 @@ class App:
         self.anchors = []
         self.selected_anchor = None
         
+        self.init_sidebar()
+        
+        # Clock for controlling frame rate
+        self.clock = pygame.time.Clock()
+        
+        # Dragging state
+        self.dragging = False
+        
+    def init_sidebar(self):
+        
         # UI Manager
         self.ui_manager = pygame_gui.UIManager((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         
@@ -62,41 +72,36 @@ class App:
         )
         
         self.x_input = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(50, 100, 100, 30),
+            relative_rect=pygame.Rect(50, 120, 100, 30),
             manager=self.ui_manager,
             container=self.sidebar
         )
         self.x_label = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(50, 70, 100, 30),
+            relative_rect=pygame.Rect(50, 90, 100, 30),
             text="X Coordinate:",
             manager=self.ui_manager,
             container=self.sidebar
         )
         
         self.y_input = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(50, 150, 100, 30),
+            relative_rect=pygame.Rect(50, 190, 100, 30),
             manager=self.ui_manager,
             container=self.sidebar
         )
         self.y_label = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(50, 120, 100, 30),
+            relative_rect=pygame.Rect(50, 160, 100, 30),
             text="Y Coordinate:",
             manager=self.ui_manager,
             container=self.sidebar
         )
         
         self.delete_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(50, 200, 150, 30),
-            text="Delete Selected Anchor",
+            relative_rect=pygame.Rect(50, 230, 100, 30),
+            text="Delete",
             manager=self.ui_manager,
             container=self.sidebar
         )
-        
-        # Clock for controlling frame rate
-        self.clock = pygame.time.Clock()
-        
-        # Dragging state
-        self.dragging = False
+        self.update_sidebar()
         
     def add_anchor(self, name, x, y):
         """Add a new anchor to the park"""
