@@ -1,6 +1,6 @@
 import pygame
 import pygame_gui
-from dog import Dog
+from anchor import Anchor
 
 
 class App:
@@ -11,7 +11,7 @@ class App:
         self.SCREEN_WIDTH = 1200
         self.SCREEN_HEIGHT = 800
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
-        pygame.display.set_caption("Dog Park Tracker")
+        pygame.display.set_caption("RTLS")
 
         
         self.running = True
@@ -30,9 +30,9 @@ class App:
         self.pan_start_x = 0
         self.pan_start_y = 0
         
-        # Dogs management
-        self.dogs = []
-        self.selected_dog = None
+        # Anchor management
+        self.anchors = []
+        self.selected_anchor = None
         
         # UI Manager
         self.ui_manager = pygame_gui.UIManager((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
@@ -56,7 +56,7 @@ class App:
         )
         self.name_label = pygame_gui.elements.UILabel(
             relative_rect=pygame.Rect(50, 20, 100, 30),
-            text="Dog Name:",
+            text="Anchor Name:",
             manager=self.ui_manager,
             container=self.sidebar
         )
@@ -87,7 +87,7 @@ class App:
         
         self.delete_button = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect(50, 200, 150, 30),
-            text="Delete Selected Dog",
+            text="Delete Selected Anchor",
             manager=self.ui_manager,
             container=self.sidebar
         )
@@ -98,10 +98,10 @@ class App:
         # Dragging state
         self.dragging = False
         
-    def add_dog(self, name, x, y):
-        """Add a new dog to the park"""
-        new_dog = Dog(name, x, y)
-        self.dogs.append(new_dog)
+    def add_anchor(self, name, x, y):
+        """Add a new anchor to the park"""
+        new_anchor = Anchor(name, x, y)
+        self.anchors.append(new_anchor)
         
     def screen_to_world_coords(self, screen_x, screen_y):
         """Convert screen coordinates to world coordinates"""
@@ -115,21 +115,21 @@ class App:
         screen_y = world_y * self.zoom - self.view_y
         return screen_x, screen_y
     
-    def get_dog_at_position(self, x, y):
-        """Find a dog at the given world coordinates"""
-        for dog in self.dogs:
-            # Calculate distance from click to dog center
-            dist = ((x - dog.x) ** 2 + (y - dog.y) ** 2) ** 0.5
-            if dist <= dog.radius / self.zoom:
-                return dog
+    def get_anchor_at_position(self, x, y):
+        """Find an anchor at the given world coordinates"""
+        for anchor in self.anchors:
+            # Calculate distance from click to anchor center
+            dist = ((x - anchor.x) ** 2 + (y - anchor.y) ** 2) ** 0.5
+            if dist <= anchor.radius / self.zoom:
+                return anchor
         return None
     
-    def update_sidebar(self, dog=None):
-        """Update sidebar with selected dog's information"""
-        if dog:
-            self.name_input.set_text(dog.name)
-            self.x_input.set_text(str(int(dog.x)))
-            self.y_input.set_text(str(int(dog.y)))
+    def update_sidebar(self, anchor=None):
+        """Update sidebar with selected anchor's information"""
+        if anchor:
+            self.name_input.set_text(anchor.name)
+            self.x_input.set_text(str(int(anchor.x)))
+            self.y_input.set_text(str(int(anchor.y)))
             self.name_input.enable()
             self.x_input.enable()
             self.y_input.enable()

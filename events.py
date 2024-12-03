@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 
-from dog import Dog
+from anchor import Anchor
 from app import App
 
 def process_events(app: App):
@@ -13,7 +13,7 @@ def process_events(app: App):
         
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == app.delete_button:
-                delete_selected_dog(app)
+                delete_selected_anchor(app)
         
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
             on_props_edit(app, event)
@@ -26,23 +26,23 @@ def process_events(app: App):
                 click_x, click_y = app.screen_to_world_coords(click_sx, click_sy)
 
                 if event.button == 1:  # Left mouse button
-                    clicked_dog: Dog | None = app.get_dog_at_position(click_x, click_y)
+                    clicked_anchor: Anchor | None = app.get_anchor_at_position(click_x, click_y)
 
-                    app.selected_dog = clicked_dog
-                    app.update_sidebar(app.selected_dog)
+                    app.selected_anchor = clicked_anchor
+                    app.update_sidebar(app.selected_anchor)
                     
-                    if app.selected_dog:
+                    if app.selected_anchor:
                         start_dragging(app, click_x, click_y)
                     else:
                         start_panning(app, click_x, click_y)
                 
                 elif event.button == 2:  # Middle mouse button
-                    app.add_dog(f"Dog {len(app.dogs) + 1}", click_x, click_y)
+                    app.add_anchor(f"{len(app.anchors) + 1}", click_x, click_y)
         
         # Dragging and panning
         elif event.type == pygame.MOUSEMOTION:
-            if app.dragging and app.selected_dog:
-                drag_selected_dog(app, event)
+            if app.dragging and app.selected_anchor:
+                drag_selected_anchor(app, event)
             elif app.panning:
                 pan_view(app, event)
             
@@ -80,11 +80,11 @@ def stop_panning(app):
 def stop_dragging(app):
     app.dragging = False
 
-def drag_selected_dog(app: App, event):
+def drag_selected_anchor(app: App, event):
     mouse_x, mouse_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
-    app.selected_dog.x = mouse_x - app.drag_start_x
-    app.selected_dog.y = mouse_y - app.drag_start_y
-    app.update_sidebar(app.selected_dog)
+    app.selected_anchor.x = mouse_x - app.drag_start_x
+    app.selected_anchor.y = mouse_y - app.drag_start_y
+    app.update_sidebar(app.selected_anchor)
 
 def pan_view(app: App, event):
     mouse_x, mouse_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
@@ -98,27 +98,27 @@ def start_panning(app: App, click_x, click_y):
 
 def start_dragging(app: App, click_x, click_y):
     app.dragging = True
-    app.drag_start_x = click_x - app.selected_dog.x
-    app.drag_start_y = click_y - app.selected_dog.y
+    app.drag_start_x = click_x - app.selected_anchor.x
+    app.drag_start_y = click_y - app.selected_anchor.y
 
 def on_props_edit(app: App, event):
-    if app.selected_dog:
+    if app.selected_anchor:
         if event.ui_element == app.name_input:
-            app.selected_dog.name = event.text
+            app.selected_anchor.name = event.text
         elif event.ui_element == app.x_input:
             try:
-                app.selected_dog.x = float(event.text)
+                app.selected_anchor.x = float(event.text)
             except ValueError:
                 pass
         elif event.ui_element == app.y_input:
             try:
-                app.selected_dog.y = float(event.text)
+                app.selected_anchor.y = float(event.text)
             except ValueError:
                 pass
 
-def delete_selected_dog(app):
-    if app.selected_dog:
-        app.dogs.remove(app.selected_dog)
-        app.selected_dog = None
+def delete_selected_anchor(app: App):
+    if app.selected_anchor:
+        app.anchors.remove(app.selected_anchor)
+        app.selected_anchor = None
         app.update_sidebar()
     

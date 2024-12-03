@@ -1,4 +1,4 @@
-class Dog:
+class Anchor:
     def __init__(self, name, x, y, radius=20):
         self.name = name
         self.x = x
