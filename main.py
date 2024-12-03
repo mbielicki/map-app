@@ -19,6 +19,10 @@ def loop(app: App):
     # Clear screen
     app.screen.fill((240, 240, 240))
     
+    # TODO Draw grid
+    
+    # TODO Draw nodes
+
     # Draw anchors
     for anchor in app.anchors:
         # Convert anchor's world coordinates to screen coordinates

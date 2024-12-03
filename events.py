@@ -67,8 +67,8 @@ def process_events(app: App):
             
             # Limit zoom
             if 0.1 <= new_zoom <= 10:
-                # Adjust view to zoom towards cursor
-                app.view_x = mouse_x - (mouse_x - app.view_x) * zoom_factor
+                # Adjust view to zoom towards cursor # TODO fix
+                app.view_x = mouse_x - (mouse_x - app.view_x) * zoom_factor 
                 app.view_y = mouse_y - (mouse_y - app.view_y) * zoom_factor
                 app.zoom = new_zoom
         
@@ -84,6 +84,7 @@ def stop_dragging(app):
     app.dragging = False
 
 def drag_selected_anchor(app: App, event):
+    # TODO snap to equal centimeters
     mouse_x, mouse_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
     app.selected_anchor.x = mouse_x - app.drag_start_x
     app.selected_anchor.y = mouse_y - app.drag_start_y
