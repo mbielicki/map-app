@@ -1,92 +1,54 @@
 import pygame
 import pygame_gui
 
-def process_events(app):
+from dog import Dog
+from app import App
+
+def process_events(app: App):
     for event in pygame.event.get():
         
-        # Pygame event handling
         if event.type == pygame.QUIT:
             app.running = False
             break
         
-        # UI event handling
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == app.delete_button:
-                # Delete selected dog
-                if app.selected_dog:
-                    app.dogs.remove(app.selected_dog)
-                    app.selected_dog = None
-                    app.update_sidebar()
+                delete_selected_dog(app)
         
-        # Text input events
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
-            if app.selected_dog:
-                if event.ui_element == app.name_input:
-                    app.selected_dog.name = event.text
-                elif event.ui_element == app.x_input:
-                    try:
-                        app.selected_dog.x = float(event.text)
-                    except ValueError:
-                        pass
-                elif event.ui_element == app.y_input:
-                    try:
-                        app.selected_dog.y = float(event.text)
-                    except ValueError:
-                        pass
+            on_props_edit(app, event)
         
         
-        # Panning view
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            click_x, click_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
+
             if event.button == 1:  # Left mouse button
-                # Check if clicking on a dog
-                world_x, world_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
-                clicked_dog = app.get_dog_at_position(world_x, world_y)
-                
-                # Deselect previous dog and select new dog
-                if app.selected_dog:
-                    app.selected_dog.selected = False
-                
+                clicked_dog: Dog | None = app.get_dog_at_position(click_x, click_y)
+
                 app.selected_dog = clicked_dog
+                app.update_sidebar(app.selected_dog)
                 
                 if app.selected_dog:
-                    app.selected_dog.selected = True
-                    app.update_sidebar(app.selected_dog)
-                    # Prepare for dragging
-                    app.dragging = True
-                    app.drag_offset_x = world_x - app.selected_dog.x
-                    app.drag_offset_y = world_y - app.selected_dog.y
+                    start_dragging(app, click_x, click_y)
                 else:
-                    # Start panning if no dog is selected
-                    app.pan_start_x, app.pan_start_y = event.pos
-                    app.update_sidebar()
+                    start_panning(app, click_x, click_y)
             
-            # Add a new dog with middle mouse button
-            elif event.button == 2:
-                world_x, world_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
-                app.add_dog(f"Dog {len(app.dogs) + 1}", world_x, world_y)
+            elif event.button == 2:  # Middle mouse button
+                app.add_dog(f"Dog {len(app.dogs) + 1}", click_x, click_y)
         
-        # Dragging
+        # Dragging and panning
         elif event.type == pygame.MOUSEMOTION:
             if app.dragging and app.selected_dog:
-                # Move selected dog
-                world_x, world_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
-                app.selected_dog.x = world_x - app.drag_offset_x
-                app.selected_dog.y = world_y - app.drag_offset_y
-                app.update_sidebar(app.selected_dog)
+                drag_selected_dog(app, event)
+            elif app.panning:
+                pan_view(app, event)
             
-        # Panning view
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and not app.selected_dog:
-            if hasattr(app, 'pan_start_x'):
-                dx = event.pos[0] - app.pan_start_x
-                dy = event.pos[1] - app.pan_start_y
-                app.view_x += dx
-                app.view_y += dy
-                app.pan_start_x, app.pan_start_y = event.pos
         
-        # Stop dragging
+        # Stop dragging or panning
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                app.dragging = False
+                stop_dragging(app)
+                stop_panning(app)
         
         # Zooming
         elif event.type == pygame.MOUSEWHEEL:
@@ -106,4 +68,54 @@ def process_events(app):
         
         # Pass events to UI manager
         app.ui_manager.process_events(event)
+
+def stop_panning(app):
+    app.panning = False
+    app.pan_start_x = None
+    app.pan_start_y = None
+
+def stop_dragging(app):
+    app.dragging = False
+
+def drag_selected_dog(app: App, event):
+    mouse_x, mouse_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
+    app.selected_dog.x = mouse_x - app.drag_start_x
+    app.selected_dog.y = mouse_y - app.drag_start_y
+    app.update_sidebar(app.selected_dog)
+
+def pan_view(app: App, event):
+    mouse_x, mouse_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
+    app.view_x -= mouse_x - app.pan_start_x
+    app.view_y -= mouse_y - app.pan_start_y
+
+def start_panning(app: App, click_x, click_y):
+    app.panning = True
+    app.pan_start_x = click_x 
+    app.pan_start_y = click_y
+
+def start_dragging(app: App, click_x, click_y):
+    app.dragging = True
+    app.drag_start_x = click_x - app.selected_dog.x
+    app.drag_start_y = click_y - app.selected_dog.y
+
+def on_props_edit(app: App, event):
+    if app.selected_dog:
+        if event.ui_element == app.name_input:
+            app.selected_dog.name = event.text
+        elif event.ui_element == app.x_input:
+            try:
+                app.selected_dog.x = float(event.text)
+            except ValueError:
+                pass
+        elif event.ui_element == app.y_input:
+            try:
+                app.selected_dog.y = float(event.text)
+            except ValueError:
+                pass
+
+def delete_selected_dog(app):
+    if app.selected_dog:
+        app.dogs.remove(app.selected_dog)
+        app.selected_dog = None
+        app.update_sidebar()
     
