@@ -34,16 +34,17 @@ class App:
         self.pan_start_x = 0
         self.pan_start_y = 0
         
-        # Anchor management
-        self.anchors = []
-        self.selected_anchor = None
-        
+        self.init_anchors()
         self.init_sidebar()
         
         # Clock for controlling frame rate
         self.clock = pygame.time.Clock()
         
-        
+    def init_anchors(self):
+        self.anchors = []
+        self.selected_anchor = None
+        # TODO read anchors configuration from file
+
     def init_sidebar(self):
         
         # UI Manager
