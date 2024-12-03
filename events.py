@@ -1,8 +1,10 @@
+import asyncio
 import pygame
 import pygame_gui
 
 from anchor import Anchor
 from app import App
+from rtt import rtt
 
 def process_events(app: App):
     for event in pygame.event.get():
@@ -14,6 +16,8 @@ def process_events(app: App):
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == app.delete_button:
                 delete_selected_anchor(app)
+            elif event.ui_element == app.rtt_button:
+                start_rtt(app)
         
         elif event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
             on_props_edit(app, event)
@@ -122,3 +126,6 @@ def delete_selected_anchor(app: App):
         app.selected_anchor = None
         app.update_sidebar()
     
+def start_rtt(app: App):
+    app.rtt_button.disable() # TODO change to stop_rtt button
+    app.rtt = rtt()

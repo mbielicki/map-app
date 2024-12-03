@@ -4,11 +4,14 @@ import sys
 
 from events import process_events
 from app import App
+from process_rtt import process_rtt
 
 def loop(app: App):
     time_delta = app.clock.tick(60)/1000.0
     
     process_events(app)
+
+    process_rtt(app)
 
     # Update UI manager
     app.ui_manager.update(time_delta)

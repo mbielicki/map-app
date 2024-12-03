@@ -16,6 +16,10 @@ class App:
         
         self.running = True
         
+        # RTT
+        self.rtt_buffer = ''
+        self.rtt = None
+        
         # View translation and scaling
         self.view_x = 0
         self.view_y = 0
@@ -39,8 +43,6 @@ class App:
         # Clock for controlling frame rate
         self.clock = pygame.time.Clock()
         
-        # Dragging state
-        self.dragging = False
         
     def init_sidebar(self):
         
@@ -101,8 +103,15 @@ class App:
             manager=self.ui_manager,
             container=self.sidebar
         )
+
+        self.rtt_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect(50, 300, 100, 30),
+            text="Start RTT",
+            manager=self.ui_manager,
+            container=self.sidebar
+        )
         self.update_sidebar()
-        
+
     def add_anchor(self, name, x, y):
         """Add a new anchor to the park"""
         new_anchor = Anchor(name, x, y)
