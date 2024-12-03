@@ -26,6 +26,7 @@ def process_rtt(app: App):
 
 def on_info_received(app: App, info: dict):
     print(info)  # TODO add dist to node, trilaterate
+    app.update_nodes(info)
 
 
 class NoStartError(Exception): pass

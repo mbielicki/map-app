@@ -1,6 +1,7 @@
 import pygame
 import pygame_gui
 from anchor import Anchor
+from node import Node
 
 
 class App:
@@ -33,6 +34,8 @@ class App:
         self.drag_start_y = 0
         self.pan_start_x = 0
         self.pan_start_y = 0
+
+        self.nodes = []
         
         self.init_anchors()
         self.init_sidebar()
@@ -113,8 +116,17 @@ class App:
         )
         self.update_sidebar()
 
+    def update_nodes(self, info: dict):
+        for node in self.nodes:
+            if node.name == info['from']:
+                node.add_distance(info)
+                return
+            
+        new_node = Node(info['from'])
+        new_node.add_distance(info)
+        self.nodes.append(new_node)
+
     def add_anchor(self, name, x, y):
-        """Add a new anchor to the park"""
         new_anchor = Anchor(name, x, y)
         self.anchors.append(new_anchor)
         
