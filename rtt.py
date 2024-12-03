@@ -30,3 +30,10 @@ def rtt():
             data = api.rtt_read(channel_index=0, length=256, encoding='latin-1')
             yield data
 
+def file_rtt(filename: str):
+    with open(filename, 'r') as f:
+        while True:
+            data = f.read(1)
+            if not data:
+                break
+            yield data
