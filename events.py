@@ -20,21 +20,24 @@ def process_events(app: App):
         
         
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            click_x, click_y = app.screen_to_world_coords(event.pos[0], event.pos[1])
+            click_sx, click_sy = event.pos
 
-            if event.button == 1:  # Left mouse button
-                clicked_dog: Dog | None = app.get_dog_at_position(click_x, click_y)
+            if click_sx < app.SIDEBAR_X:
+                click_x, click_y = app.screen_to_world_coords(click_sx, click_sy)
 
-                app.selected_dog = clicked_dog
-                app.update_sidebar(app.selected_dog)
+                if event.button == 1:  # Left mouse button
+                    clicked_dog: Dog | None = app.get_dog_at_position(click_x, click_y)
+
+                    app.selected_dog = clicked_dog
+                    app.update_sidebar(app.selected_dog)
+                    
+                    if app.selected_dog:
+                        start_dragging(app, click_x, click_y)
+                    else:
+                        start_panning(app, click_x, click_y)
                 
-                if app.selected_dog:
-                    start_dragging(app, click_x, click_y)
-                else:
-                    start_panning(app, click_x, click_y)
-            
-            elif event.button == 2:  # Middle mouse button
-                app.add_dog(f"Dog {len(app.dogs) + 1}", click_x, click_y)
+                elif event.button == 2:  # Middle mouse button
+                    app.add_dog(f"Dog {len(app.dogs) + 1}", click_x, click_y)
         
         # Dragging and panning
         elif event.type == pygame.MOUSEMOTION:

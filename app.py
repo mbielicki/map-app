@@ -38,7 +38,10 @@ class App:
         self.ui_manager = pygame_gui.UIManager((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         
         # Sidebar
-        sidebar_rect = pygame.Rect(self.SCREEN_WIDTH - 250, 0, 250, self.SCREEN_HEIGHT)
+        self.SIDEBAR_WIDTH = 250
+        self.SIDEBAR_X = self.SCREEN_WIDTH - self.SIDEBAR_WIDTH
+
+        sidebar_rect = pygame.Rect(self.SIDEBAR_X, 0, self.SIDEBAR_WIDTH, self.SCREEN_HEIGHT)
         self.sidebar = pygame_gui.elements.UIPanel(
             relative_rect=sidebar_rect,
             starting_height=1,
@@ -47,43 +50,43 @@ class App:
         
         # Sidebar elements
         self.name_input = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(50, 50, 50, 30),
+            relative_rect=pygame.Rect(50, 50, 100, 30),
             manager=self.ui_manager,
             container=self.sidebar
         )
         self.name_label = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(50, 20, 50, 30),
+            relative_rect=pygame.Rect(50, 20, 100, 30),
             text="Dog Name:",
             manager=self.ui_manager,
             container=self.sidebar
         )
         
         self.x_input = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(50, 100, 50, 30),
+            relative_rect=pygame.Rect(50, 100, 100, 30),
             manager=self.ui_manager,
             container=self.sidebar
         )
         self.x_label = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(50, 70, 50, 30),
+            relative_rect=pygame.Rect(50, 70, 100, 30),
             text="X Coordinate:",
             manager=self.ui_manager,
             container=self.sidebar
         )
         
         self.y_input = pygame_gui.elements.UITextEntryLine(
-            relative_rect=pygame.Rect(50, 150, 50, 30),
+            relative_rect=pygame.Rect(50, 150, 100, 30),
             manager=self.ui_manager,
             container=self.sidebar
         )
         self.y_label = pygame_gui.elements.UILabel(
-            relative_rect=pygame.Rect(50, 120, 50, 30),
+            relative_rect=pygame.Rect(50, 120, 100, 30),
             text="Y Coordinate:",
             manager=self.ui_manager,
             container=self.sidebar
         )
         
         self.delete_button = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect(50, 200, 50, 30),
+            relative_rect=pygame.Rect(50, 200, 150, 30),
             text="Delete Selected Dog",
             manager=self.ui_manager,
             container=self.sidebar
