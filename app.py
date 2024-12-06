@@ -146,13 +146,13 @@ class App:
         self.anchors.append(new_anchor)
         print(f"Anchor added: {name} at ({x}, {y})")
         
-    def screen_to_world_coords(self, screen_x, screen_y):
+    def screen_to_world_coords(self, screen_x: float, screen_y: float) -> tuple[float, float]:
         """Convert screen coordinates to world coordinates"""
         world_x = (screen_x + self.view_x) / self.zoom
         world_y = (screen_y + self.view_y) / self.zoom
         return world_x, world_y
     
-    def world_to_screen_coords(self, world_x, world_y):
+    def world_to_screen_coords(self, world_x: float, world_y: float) -> tuple[float, float]:
         """Convert world coordinates to screen coordinates"""
         screen_x = world_x * self.zoom - self.view_x
         screen_y = world_y * self.zoom - self.view_y
