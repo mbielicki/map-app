@@ -20,8 +20,6 @@ def loop(app: App):
     app.screen.fill((240, 240, 240))
     
     # TODO Draw grid
-    
-    # TODO Draw nodes
 
     # Draw anchors
     for anchor in app.anchors:
@@ -44,6 +42,23 @@ def loop(app: App):
         text = font.render(anchor.name, True, (0, 0, 0))
         text_rect = text.get_rect(center=(int(screen_x), int(screen_y + anchor.radius * app.zoom + 15)))
         app.screen.blit(text, text_rect)
+    
+    # Draw nodes
+    for node in app.nodes:
+        if node.x is not None and node.y is not None:  # Ensure node position is valid
+            screen_x, screen_y = app.world_to_screen_coords(node.x, node.y)
+            
+            pygame.draw.circle(
+                app.screen, 
+                node.color, 
+                (int(screen_x), int(screen_y)), 
+                int(node.radius * app.zoom)
+            )
+            
+            font = pygame.font.Font(None, int(20 * app.zoom))
+            text = font.render(node.name, True, (0, 0, 0))
+            text_rect = text.get_rect(center=(int(screen_x), int(screen_y + node.radius * app.zoom + 15)))
+            app.screen.blit(text, text_rect)
     
     # Draw UI
     app.ui_manager.draw_ui(app.screen)

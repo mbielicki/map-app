@@ -1,5 +1,6 @@
 import pygame
 import pygame_gui
+import json
 from anchor import Anchor
 from node import Node
 
@@ -46,7 +47,21 @@ class App:
     def init_anchors(self):
         self.anchors = []
         self.selected_anchor = None
-        # TODO read anchors configuration from file
+
+        # Load anchors from JSON file
+        try:
+            with open('data/anchor-config.json', 'r') as file:
+                anchor_data = json.load(file)
+                for anchor_entry in anchor_data:
+                    name = anchor_entry.get("name")
+                    x = anchor_entry.get("x")
+                    y = anchor_entry.get("y")
+                    if name and x is not None and y is not None:
+                        self.add_anchor(name, x, y)
+        except FileNotFoundError:
+            print("Anchor configuration file not found.")
+        except json.JSONDecodeError as e:
+            print(f"Error decoding anchor configuration file: {e}")
 
     def init_sidebar(self):
         
@@ -119,16 +134,17 @@ class App:
     def update_nodes(self, info: dict):
         for node in self.nodes:
             if node.name == info['from']:
-                node.add_distance(info)
+                node.add_distance(info, self.anchors)
                 return
             
         new_node = Node(info['from'])
-        new_node.add_distance(info)
+        new_node.add_distance(info, self.anchors)
         self.nodes.append(new_node)
 
     def add_anchor(self, name, x, y):
         new_anchor = Anchor(name, x, y)
         self.anchors.append(new_anchor)
+        print(f"Anchor added: {name} at ({x}, {y})")
         
     def screen_to_world_coords(self, screen_x, screen_y):
         """Convert screen coordinates to world coordinates"""
