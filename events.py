@@ -73,19 +73,20 @@ def reset_view(app: App):
     app.zoom = 1
 
 def zoom(app: App, event):
-    # Zoom towards mouse cursor
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            
-            # Calculate zoom factor
-            zoom_factor = 1.1 if event.y > 0 else 0.9
-            new_zoom = app.zoom * zoom_factor
-            
-            # Limit zoom
-            if 0.1 <= new_zoom <= 10:
-                # Adjust view to zoom towards cursor # TODO fix
-                app.view_x = mouse_x - (mouse_x - app.view_x) * zoom_factor 
-                app.view_y = mouse_y - (mouse_y - app.view_y) * zoom_factor
-                app.zoom = new_zoom
+    
+    mouse = pygame.mouse.get_pos()
+    mouse_x, mouse_y = app.screen_to_world_coords(*mouse)
+    
+    # Calculate zoom factor
+    zoom_factor = 1.1 if event.y > 0 else 0.9
+    new_zoom = app.zoom * zoom_factor
+    
+    # Limit zoom
+    if 0.5 <= new_zoom <= 3:
+        # Adjust view to zoom towards cursor # TODO fix
+        app.view_x = mouse_x - (mouse_x - app.view_x) / zoom_factor 
+        app.view_y = mouse_y - (mouse_y - app.view_y) / zoom_factor
+        app.zoom = new_zoom
 
 def stop_panning(app):
     app.panning = False

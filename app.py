@@ -148,14 +148,14 @@ class App:
         
     def screen_to_world_coords(self, screen_x: float, screen_y: float) -> tuple[float, float]:
         """Convert screen coordinates to world coordinates"""
-        world_x = (screen_x + self.view_x) / self.zoom
-        world_y = (screen_y + self.view_y) / self.zoom
+        world_x = screen_x / self.zoom + self.view_x
+        world_y = screen_y / self.zoom + self.view_y 
         return world_x, world_y
     
     def world_to_screen_coords(self, world_x: float, world_y: float) -> tuple[float, float]:
         """Convert world coordinates to screen coordinates"""
-        screen_x = world_x * self.zoom - self.view_x
-        screen_y = world_y * self.zoom - self.view_y
+        screen_x = (world_x - self.view_x) * self.zoom
+        screen_y = (world_y - self.view_y) * self.zoom
         return screen_x, screen_y
     
     def get_anchor_at_position(self, x, y):
