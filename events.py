@@ -58,7 +58,22 @@ def process_events(app: App):
         
         # Zooming
         elif event.type == pygame.MOUSEWHEEL:
-            # Zoom towards mouse cursor
+            zoom(app, event)
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_PERIOD:
+                reset_view(app)
+        
+        # Pass events to UI manager
+        app.ui_manager.process_events(event)
+
+def reset_view(app: App):
+    app.view_x = 0
+    app.view_y = 0
+    app.zoom = 1
+
+def zoom(app: App, event):
+    # Zoom towards mouse cursor
             mouse_x, mouse_y = pygame.mouse.get_pos()
             
             # Calculate zoom factor
@@ -71,9 +86,6 @@ def process_events(app: App):
                 app.view_x = mouse_x - (mouse_x - app.view_x) * zoom_factor 
                 app.view_y = mouse_y - (mouse_y - app.view_y) * zoom_factor
                 app.zoom = new_zoom
-        
-        # Pass events to UI manager
-        app.ui_manager.process_events(event)
 
 def stop_panning(app):
     app.panning = False
