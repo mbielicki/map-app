@@ -51,7 +51,7 @@ def loop(app: App):
         screen_x, screen_y = app.world_to_screen_coords(anchor.x, anchor.y)
         
         # Determine anchor color (selected or default)
-        color = (255, 100, 100) if anchor == app.selected_anchor else anchor.color
+        color = anchor.color_selected if anchor == app.selected_anchor else anchor.color
         
         # Draw anchor circle
         pygame.draw.circle(

@@ -4,4 +4,5 @@ class Anchor:
         self.x = x
         self.y = y
         self.radius = radius
-        self.color = (0, 128, 255)  # Default blue color
+        self.color = (24, 116, 152)  # Default blue color
+        self.color_selected = (235, 83, 83)  # Red color

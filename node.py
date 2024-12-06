@@ -6,7 +6,7 @@ class Node:
         self.x = None
         self.y = None
         self.radius = radius
-        self.color = (0, 128, 255)  # Default blue color
+        self.color = (54, 174, 124)  # Green color
 
         self.distances = {}
 
