@@ -10,8 +10,8 @@ class App:
         pygame.init()
         
         # Screen and view settings
-        self.SCREEN_WIDTH = 1200
-        self.SCREEN_HEIGHT = 800
+        self.SCREEN_WIDTH = 1920 / 2
+        self.SCREEN_HEIGHT = 1080 - 300
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         pygame.display.set_caption("RTLS")
 
