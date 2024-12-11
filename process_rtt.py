@@ -31,7 +31,7 @@ def now():
 def on_info_received(app: App, info: dict):
     info['timestamp'] = now()
     print(info)  # TODO add dist to node, trilaterate
-    with open('data/test-2.json', 'a') as f:
+    with open('data/test-3.json', 'a') as f:
         f.write(json.dumps(info) + '\n')
     app.update_nodes(info)
 
