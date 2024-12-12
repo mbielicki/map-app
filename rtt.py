@@ -33,7 +33,7 @@ def rtt():
 def file_rtt(filename: str):
     with open(filename, 'r') as f:
         while True:
-            data = f.read(1)
+            data = f.read(10)
             if not data:
                 break
             yield data

@@ -11,6 +11,8 @@ class Node:
         self.radius = radius
         self.color = (0, 128, 255)  # Default blue color
         self.distances = {}
+        self.last_update_time_str = None
+
 
     def add_distance(self, info: dict):
         target_name = info.get('to')
@@ -22,6 +24,7 @@ class Node:
 
         # Add or update the distance for the target node/anchor
         self.distances[target_name] = float(distance)  # Convert to float if necessary
+        self.last_update_time_str = info.get('timestamp')
 
     def multilaterate(self, anchors: list, other_nodes: list) -> bool:
         # Collect all points and distances

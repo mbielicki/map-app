@@ -133,8 +133,11 @@ class App:
         )
         self.update_sidebar()
 
-    def now(self) -> str:
-        return f'{(time.time() - self.start_time):.3f}'
+    def now(self) -> float:
+        return time.time() - self.start_time
+    
+    def now_str(self) -> str:
+        return f'{(self.now()):.3f}'
 
     def update_nodes(self, info: dict):
         """
@@ -162,14 +165,14 @@ class App:
             print("Multilaterating Node 99...")
             success = node_99.multilaterate(self.anchors, self.nodes)
             if success:
-                self.log_node_position(node_99.name, node_99.x, node_99.y)
+                self.log_node_position(node_99)
 
         # Only multilaterate Node 98 if Node 99 has a valid position
         if node_98 and node_99 and node_99.x is not None and node_99.y is not None:
             print("Multilaterating Node 98...")
             success = node_98.multilaterate(self.anchors, self.nodes)
             if success:
-                self.log_node_position(node_98.name, node_98.x, node_98.y)
+                self.log_node_position(node=node_98)
         elif node_98:
             print("Skipping Node 98 multilateration: Node 99 has not been resolved yet.")
 
@@ -219,13 +222,13 @@ class App:
             self.delete_button.disable()
  
  
-    def log_node_position(self, node_name, x, y):
+    def log_node_position(self, node: Node):
         """Logs calculated node position and elapsed time to a file."""
         log_entry = {
-            "node": node_name,
-            "x": round(x),
-            "y": round(y),
-            "time": self.now()
+            "node": node.name,
+            "x": round(node.x),
+            "y": round(node.y),
+            "time": node.last_update_time_str
         }
         with open("data/node_positions.log", "a") as log_file: 
             log_file.write(json.dumps(log_entry) + "\n")
