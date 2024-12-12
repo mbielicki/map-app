@@ -5,8 +5,8 @@ import time
 
 def start_rtt(app: App):
     app.rtt_button.disable() # TODO change to stop_rtt button
-    app.rtt = rtt()
-    # app.rtt = file_rtt('data/test-1.json')
+    # app.rtt = rtt()
+    app.rtt = file_rtt('data/test-3.json')
 
 def process_rtt(app: App):
     if not app.rtt: return
