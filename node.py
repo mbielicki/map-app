@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import least_squares
 from scipy.optimize import minimize
 
+
 class Node:
     def __init__(self, name, radius=20):
         self.name = name
@@ -22,7 +23,7 @@ class Node:
         # Add or update the distance for the target node/anchor
         self.distances[target_name] = float(distance)  # Convert to float if necessary
 
-    def multilaterate(self, anchors: list, other_nodes: list):
+    def multilaterate(self, anchors: list, other_nodes: list) -> bool:
         # Collect all points and distances
         points = []
         distances = []
@@ -44,7 +45,7 @@ class Node:
         if len(points) < 3:
             print(f"Multilateration failed for {self.name}: Not enough valid points.")
             self.x = self.y = None
-            return
+            return False
 
         # Objective function for optimization
         def objective(pos):
@@ -62,6 +63,8 @@ class Node:
 
         if result.success:
             self.x, self.y = result.x
+            return True
         else:
             print(f"Multilateration failed for {self.name}: {result.message}")
             self.x = self.y = None
+            return False

@@ -38,7 +38,7 @@ class App:
         self.pan_start_x = 0
         self.pan_start_y = 0
 
-        self.nodes = []
+        self.nodes: list[Node] = []
         
         self.init_anchors()
         self.init_sidebar()
@@ -160,12 +160,16 @@ class App:
 
         if node_99:
             print("Multilaterating Node 99...")
-            node_99.multilaterate(self.anchors, self.nodes)
+            success = node_99.multilaterate(self.anchors, self.nodes)
+            if success:
+                self.log_node_position(node_99.name, node_99.x, node_99.y)
 
         # Only multilaterate Node 98 if Node 99 has a valid position
         if node_98 and node_99 and node_99.x is not None and node_99.y is not None:
             print("Multilaterating Node 98...")
-            node_98.multilaterate(self.anchors, self.nodes)
+            success = node_98.multilaterate(self.anchors, self.nodes)
+            if success:
+                self.log_node_position(node_98.name, node_98.x, node_98.y)
         elif node_98:
             print("Skipping Node 98 multilateration: Node 99 has not been resolved yet.")
 
@@ -215,13 +219,13 @@ class App:
             self.delete_button.disable()
  
  
-    def log_node_position(self, node_name, x, y, elapsed_time):
+    def log_node_position(self, node_name, x, y):
         """Logs calculated node position and elapsed time to a file."""
         log_entry = {
             "node": node_name,
-            "x": x,
-            "y": y,
-            "time": f"{elapsed_time:.3f}"
+            "x": round(x),
+            "y": round(y),
+            "time": self.now()
         }
         with open("data/node_positions.log", "a") as log_file: 
             log_file.write(json.dumps(log_entry) + "\n")
