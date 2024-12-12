@@ -1,3 +1,4 @@
+import time
 import pygame
 import pygame_gui
 import json
@@ -16,6 +17,7 @@ class App:
         pygame.display.set_caption("RTLS")
 
         
+        self.start_time = time.time()
         self.running = True
         
         # RTT
@@ -131,6 +133,9 @@ class App:
         )
         self.update_sidebar()
 
+    def now(self) -> str:
+        return f'{(time.time() - self.start_time):.3f}'
+
     def update_nodes(self, info: dict):
         """
         Update nodes with distance information and ensure multilateration is performed in strict sequence.
@@ -209,4 +214,16 @@ class App:
             self.y_input.disable()
             self.delete_button.disable()
  
+ 
+    def log_node_position(self, node_name, x, y, elapsed_time):
+        """Logs calculated node position and elapsed time to a file."""
+        log_entry = {
+            "node": node_name,
+            "x": x,
+            "y": y,
+            "time": f"{elapsed_time:.3f}"
+        }
+        with open("data/node_positions.log", "a") as log_file: 
+            log_file.write(json.dumps(log_entry) + "\n")
+        
     

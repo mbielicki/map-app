@@ -1,12 +1,11 @@
 import json
 from rtt import file_rtt, rtt
 from app import App
-import time
 
 def start_rtt(app: App):
     app.rtt_button.disable() # TODO change to stop_rtt button
     # app.rtt = rtt()
-    app.rtt = file_rtt('data/test-3.json')
+    app.rtt = file_rtt('data/test-2.json')
 
 def process_rtt(app: App):
     if not app.rtt: return
@@ -24,12 +23,10 @@ def process_rtt(app: App):
         app.rtt_buffer = ''
         on_info_received(app, info)
 
-start_time = time.time()
-def now():
-    return f'{(time.time() - start_time):.3f}'
+
 
 def on_info_received(app: App, info: dict):
-    info['timestamp'] = now()
+    info['timestamp'] = app.now()
     print(info)
     # with open('data/test-4.json', 'a') as f:
     #     f.write(json.dumps(info) + '\n')
