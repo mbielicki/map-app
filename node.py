@@ -31,6 +31,10 @@ class Node:
         anchor_dict = {anchor.name: anchor for anchor in anchors}
         node_dict = {node.name: node for node in other_nodes if node.x is not None and node.y is not None}
 
+        # Special rule: exclude Node 98 if this is Node 99
+        if self.name == "99":
+            node_dict = {name: node for name, node in node_dict.items() if name != "98"}
+
         for target_name, dist in self.distances.items():
             if target_name in anchor_dict:  # It's an anchor
                 anchor = anchor_dict[target_name]
