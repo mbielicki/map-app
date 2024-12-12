@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.optimize import least_squares
+from scipy.optimize import minimize
 
 class Node:
     def __init__(self, name, radius=20):
@@ -6,50 +8,60 @@ class Node:
         self.x = None
         self.y = None
         self.radius = radius
-        self.color = (54, 174, 124)  # Green color
-
+        self.color = (0, 128, 255)  # Default blue color
         self.distances = {}
 
-    def add_distance(self, info: dict, anchors: list):
-        # Find the anchor object based on the name in `info['to']`
-        anchor = next((a for a in anchors if a.name == info['to']), None)
-        if anchor:
-            self.distances[anchor] = float(info['dist'])
-            self.trilaterate()
-        else:
-            print(f"Anchor {info['to']} not found.")
+    def add_distance(self, info: dict):
+        target_name = info.get('to')
+        distance = info.get('distance') or info.get('dist')  # Handle both 'distance' and 'dist' keys
 
-    def trilaterate(self):
-        if len(self.distances) < 3:
-            # Not enough anchors to trilaterate
-            self.x, self.y = None, None
+        if distance is None:
+            print(f"Error: 'distance' key not found in info for node {self.name}")
+            return  # Exit the function if distance is not found
+
+        # Add or update the distance for the target node/anchor
+        self.distances[target_name] = float(distance)  # Convert to float if necessary
+
+    def multilaterate(self, anchors: list, other_nodes: list):
+        # Collect all points and distances
+        points = []
+        distances = []
+
+        # Map anchor names to coordinates
+        anchor_dict = {anchor.name: anchor for anchor in anchors}
+        node_dict = {node.name: node for node in other_nodes if node.x is not None and node.y is not None}
+
+        for target_name, dist in self.distances.items():
+            if target_name in anchor_dict:  # It's an anchor
+                anchor = anchor_dict[target_name]
+                points.append((anchor.x, anchor.y))
+                distances.append(dist)
+            elif target_name in node_dict:  # It's another node
+                node = node_dict[target_name]
+                points.append((node.x, node.y))
+                distances.append(dist)
+
+        if len(points) < 3:
+            print(f"Multilateration failed for {self.name}: Not enough valid points.")
+            self.x = self.y = None
             return
 
-        # Extract the first three anchors and their distances
-        anchors = list(self.distances.keys())
-        try:
-            p1 = np.array((anchors[0].x, anchors[0].y))
-            p2 = np.array((anchors[1].x, anchors[1].y))
-            p3 = np.array((anchors[2].x, anchors[2].y))
-            d1, d2, d3 = self.distances[anchors[0]], self.distances[anchors[1]], self.distances[anchors[2]]
+        # Objective function for optimization
+        def objective(pos):
+            px, py = pos
+            return sum(
+                (np.sqrt((px - x) ** 2 + (py - y) ** 2) - d) ** 2
+                for (x, y), d in zip(points, distances)
+            )
 
-            # Calculate intermediate variables
-            ex = (p2 - p1) / np.linalg.norm(p2 - p1)
-            i = np.dot(ex, p3 - p1)
-            ey = (p3 - p1 - i * ex) / np.linalg.norm(p3 - p1 - i * ex)
-            d = np.linalg.norm(p2 - p1)
-            j = np.dot(ey, p3 - p1)
+        # Initial guess for the position
+        initial_guess = (0, 0)
 
-            # Calculate x, y coordinates relative to the reference frame defined by p1, p2, p3
-            x = (d1**2 - d2**2 + d**2) / (2 * d)
-            y = (d1**2 - d3**2 + i**2 + j**2) / (2 * j) - (i / j) * x
+        # Optimize using scipy
+        result = minimize(objective, initial_guess, method='L-BFGS-B')
 
-            # Convert back to absolute coordinates
-            final_pos = p1 + x * ex + y * ey
-            self.x, self.y = final_pos[0], final_pos[1]
-
-        except Exception as e:
-            # Handle calculation errors gracefully
-            print(f"Trilateration failed: {e}")
-            self.x, self.y = None, None
-        
+        if result.success:
+            self.x, self.y = result.x
+        else:
+            print(f"Multilateration failed for {self.name}: {result.message}")
+            self.x = self.y = None

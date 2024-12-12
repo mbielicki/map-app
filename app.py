@@ -132,14 +132,37 @@ class App:
         self.update_sidebar()
 
     def update_nodes(self, info: dict):
+        """
+        Update nodes with distance information and ensure multilateration is performed in strict sequence.
+        """
+        # Update or add the node from the info
         for node in self.nodes:
             if node.name == info['from']:
-                node.add_distance(info, self.anchors)
-                return
-            
-        new_node = Node(info['from'])
-        new_node.add_distance(info, self.anchors)
-        self.nodes.append(new_node)
+                node.add_distance(info)
+                break
+        else:
+            # Create a new node if it doesn't already exist
+            new_node = Node(info['from'])
+            new_node.add_distance(info)
+            self.nodes.append(new_node)
+
+        # Multilateration logic with strict order
+        node_dict = {node.name: node for node in self.nodes}
+
+        # Multilaterate nodes in strict order
+        node_99 = node_dict.get("99")
+        node_98 = node_dict.get("98")
+
+        if node_99:
+            print("Multilaterating Node 99...")
+            node_99.multilaterate(self.anchors, self.nodes)
+
+        # Only multilaterate Node 98 if Node 99 has a valid position
+        if node_98 and node_99 and node_99.x is not None and node_99.y is not None:
+            print("Multilaterating Node 98...")
+            node_98.multilaterate(self.anchors, self.nodes)
+        elif node_98:
+            print("Skipping Node 98 multilateration: Node 99 has not been resolved yet.")
 
     def add_anchor(self, name, x, y):
         new_anchor = Anchor(name, x, y)
